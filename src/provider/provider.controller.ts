@@ -433,9 +433,9 @@ export class ProviderController {
       await this.providerService.updateProviderPassword(
         providerId,
         updatePasswordDto
-      )
+      );
       this.logger.log(`Successfully reset the password.`);
-      
+
       res.status(HttpStatus.OK).json({
         message: "Successfully reset the password.",
       });

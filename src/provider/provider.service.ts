@@ -281,7 +281,6 @@ export class ProviderService {
       },
     });
   }
-
   async updateProviderPassword(
     providerId: string,
     updatePasswordDto: UpdatePasswordDto
