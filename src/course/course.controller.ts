@@ -4,7 +4,8 @@ import { CourseService } from "./course.service";
 import { FeedbackDto } from "./dto/feedback.dto";
 import { CourseResponse } from "./dto/course-response.dto";
 import { getPrismaErrorStatusAndMessage } from "src/utils/utils";
-import { FilterCourseDTO } from "./dto/filter-course.dto";
+import { SearchResponseDTO } from "./dto/search-response.dto";
+import { PurchaseDto, PurchaseResponseDto } from "./dto/purchase.dto";
 
 @Controller('course')
 @ApiTags('course')
@@ -55,10 +56,10 @@ export class CourseController {
         try {
             this.logger.log(`Getting information of one course`);
 
-            const course: CourseResponse = await this.courseService.getCourse(courseId);
+            const course = await this.courseService.getCourseByConsumer(courseId);
 
             this.logger.log(`Successfully retrieved the course`);
-
+            
             res.status(HttpStatus.OK).json({
                 message: "fetch successful",
                 data: course
@@ -75,23 +76,27 @@ export class CourseController {
     }
 
     @ApiOperation({ summary: 'Confirmation of user purchase of a course' })
-    @ApiResponse({ status: HttpStatus.OK })
-    @Post("/:courseId/purchase/:userId")
+    @ApiResponse({ status: HttpStatus.OK, type: PurchaseResponseDto })
+    @Post("/:courseId/purchase")
     // Confirmation of user purchase of a course
     async purchaseCourse(
         @Param("courseId", ParseIntPipe) courseId: number,
-        @Param("userId", ParseUUIDPipe) userId: string,
+        @Body() purchaseDto: PurchaseDto,
+
         @Res() res
     ) {
         try {
             this.logger.log(`Recording the user purchase of the course`);
 
-            await this.courseService.addPurchaseRecord(courseId, userId);
+            const transactionId = await this.courseService.addPurchaseRecord(courseId, purchaseDto);
 
             this.logger.log(`Successfully recorded the purchase`);
 
             res.status(HttpStatus.OK).json({
-                message: "purchase successful"
+                message: "purchase successful",
+                data: {
+                    walletTransactionId: transactionId
+                }
             })
         } catch (err) {
             this.logger.error(`Failed to record the purchase`);
@@ -140,13 +145,13 @@ export class CourseController {
     @Post("/verifyFilter")
     // Filter for admin verified courses
     async verifiedFilter(
-        @Body() courses: FilterCourseDTO[],
+        @Body() courses: SearchResponseDTO[],
         @Res() res
     ) {
         try {
             this.logger.log(`Filtering for courses verified by admin`);
 
-            const filteredCourses: FilterCourseDTO[] = await this.courseService.filterVerified(courses);
+            const filteredCourses: SearchResponseDTO[] = await this.courseService.filterVerified(courses);
 
             this.logger.log(`Successfully filtered the courses`);
 
