@@ -3,7 +3,11 @@ import { ConfigModule } from "@nestjs/config";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { PrismaModule } from "./prisma/prisma.module";
-import { PrismaService } from "./prisma/prisma.service";
+import { ProviderModule } from "./provider/provider.module";
+import { AdminModule } from './admin/admin.module';
+import { MockWalletModule } from './mock-wallet/mock-wallet.module';
+import { CourseModule } from "./course/course.module";
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -11,8 +15,13 @@ import { PrismaService } from "./prisma/prisma.service";
       isGlobal: true,
     }),
     PrismaModule,
+    ProviderModule,
+    AdminModule,
+    MockWalletModule,
+    CourseModule,
+    AuthModule
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService],
 })
 export class AppModule {}

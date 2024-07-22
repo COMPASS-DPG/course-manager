@@ -12,9 +12,100 @@ datasource db {
 
 // Here goes models
 
-//dummy user model
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+enum ProviderStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum WalletType {
+  ADMIN
+  PROVIDER
+  CONSUMER
+}
+
+enum CourseVerificationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum CourseStatus {
+  UNARCHIVED
+  ARCHIVED
+}
+
+enum CourseProgressStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Admin {
+  id        String  @id @default(uuid())
+  name      String  
+  image     String?
+  email     String  @unique
+  password  String 
+}
+
+model Provider {
+  id          String          @id @default(uuid())
+  name        String  
+  email       String          @unique
+  password    String
+  orgName     String
+  orgLogo     String
+  phone       String
+  paymentInfo Json?
+  status      ProviderStatus  @default(PENDING)
+  courses     Course[]
+  rejectionReason String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now())
+}
+
+
+model Course {
+  courseId            String                       @id @default(uuid())
+  providerId          String
+  title               String
+  description         String
+  courseLink          String
+  imageLink           String
+  credits             Int
+  language            String[]
+  competency          Json
+  author              String
+  avgRating           Float?
+  status              CourseStatus              @default(UNARCHIVED)
+  startDate           DateTime?
+  endDate             DateTime?
+  verificationStatus  CourseVerificationStatus  @default(PENDING)
+  cqfScore            Int?
+  impactScore         Float?
+  rejectionReason     String?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  provider            Provider                  @relation(fields: [providerId], references: [id])
+  userCourses         UserCourse[]              
+}
+
+model UserCourse {
+  id                        Int                       @id @default(autoincrement())
+  userId                    String                    @db.Uuid
+  courseId                  String
+  purchasedAt               DateTime                  @default(now())
+  status                    CourseProgressStatus      @default(IN_PROGRESS)
+  courseCompletionScore     Float?
+  rating                    Int?
+  feedback                  String?
+  course                    Course                    @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+enum TransactionType {
+  PURCHASE
+  CREDIT_REQUEST
+  SETTLEMENT
 }
